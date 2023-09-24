@@ -1,27 +1,25 @@
-// const prompt = require('prompt-sync')();
-
 let inputs = [];
 let operators = [`+`, `-`, `*`, `/`];
 let numbers = [`1`,`2`,`3`,`4`,`5`,`6`,`7`,`8`,`9`,`0`];
-let functions = [`e`, `c`];
+let functions = [`e`, `c`, `b`];
 let validInputs = operators.concat(numbers, functions);
 let keepGoing = true;
 let display = ``;
 let displayDiv;
 let nonNumberButtons = operators.concat(functions);
+let calcJustPerformed = false;
+
 window.onload = (event) => {
-    console.log('yeah');
+    // console.log('yeah');
     for (let i = 0; i <= 9; i++) {
         let btn = document.querySelector(`.b${i}`)
-        console.log(btn);
+        // console.log(btn);
         btn.addEventListener(`click`, () => {
             collectInput(i.toString());
         })
     }
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
         let btn = document.querySelector(`.b1${i}`)
-        // console.log(btn);
-        // console.log(nonNumberButtons[i].toString());
         btn.addEventListener(`click`, () => {
             collectInput(nonNumberButtons[i].toString())
         })
@@ -30,39 +28,50 @@ window.onload = (event) => {
 }
 
 function collectInput(input) {
-    // let input = getInput();
     if (input != undefined) {
         //don't add operator if operator was most recent input
         if (numbers.includes(input)) {
-            inputs.push(input);
-            display += input;
-        } else if (operators.includes(input)) {
-            if (numbers.includes(inputs[inputs.length - 1])) {
+            if (calcJustPerformed) {
+                inputs = [input];
+                display = input;
+                calcJustPerformed = false;
+            } else {
                 inputs.push(input);
                 display += input;
             }
+        } else if (operators.includes(input)) {
+            if (numbers.includes(inputs[inputs.length - 1])) {
+                inputs.push(input);
+            } else if (operators.includes(inputs[inputs.length - 1])) {
+                inputs[inputs.length - 1] = input;
+                display = display.substring(0, display.length - 1);
+            }
+            calcJustPerformed = false;
+            display += input;
         } else if (functions.includes(input)) {
             if (input === `c`) {
                 inputs = [];
+                calcJustPerformed = false;
                 display = ``;
             } else if (input === `e` && numbers.includes(inputs[inputs.length - 1])) {
                 //only use e (enter) after a number has been inputted 
-                // keepGoing = false;
-                console.log(inputs);
+                // console.log(inputs);
+                calcJustPerformed = false;
                 display = processInputs();
+                display = +display;
+                if (display.toFixed(3) != display) {
+                    display = display.toFixed(3);
+                }
+                console.log(display);
+            } else if (input === `b`) {
+                calcJustPerformed = false;
+                inputs.splice(inputs.length - 1, 1);
+                display = display.substring(0, display.length - 1);
             }
         }
     }
     displayDiv.textContent = display;
-    console.log(inputs);
-    // console.log(display);
-}
-
-function getInput() {
-    let input = prompt(`Next input: `)
-    if (validInputs.includes(input)) {
-        return input;
-    }
+    // console.log(inputs);
 }
 
 function processInputs() {
@@ -81,7 +90,7 @@ function processInputs() {
     }
     let operand = +inputs.join(``);
     processedInputs.push(operand);
-    console.log(processedInputs);
+    // console.log(processedInputs);
     return evaluateInputs(processedInputs);
 }
 
@@ -91,9 +100,8 @@ function evaluateInputs(processedInputs) {
             processedInputs = processedInputs.slice(3);
             processedInputs.unshift(result);
     }
-    // console.log(typeof processedInputs[0]);
-    inputs = processedInputs[0].toString().split("");/////
-    console.log(inputs);
+    inputs = processedInputs[0].toString().split("");
+    calcJustPerformed = true;
     return processedInputs[0]
 }
 
